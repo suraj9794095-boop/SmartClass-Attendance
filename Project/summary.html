@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Attendance Summary - SmartClass</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .topbar {
+            background: #0f172a;
+            color: white;
+            padding: 20px 6%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand h1 {
+            font-size: 27px;
+        }
+
+        .brand p {
+            color: #cbd5e1;
+            margin-top: 5px;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            background: white;
+            color: #0f172a;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        main {
+            width: 88%;
+            max-width: 1100px;
+            margin: 30px auto;
+        }
+
+        .heading {
+            margin-bottom: 25px;
+        }
+
+        .heading h2 {
+            font-size: 28px;
+        }
+
+        .heading p {
+            color: #64748b;
+            margin-top: 7px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 22px;
+            border-radius: 16px;
+            box-shadow: 0 5px 18px rgba(0, 0, 0, 0.07);
+        }
+
+        .summary-card h3 {
+            font-size: 15px;
+            color: #64748b;
+            margin-bottom: 12px;
+        }
+
+        .summary-card p {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .student-summary {
+            background: white;
+            margin-top: 25px;
+            padding: 22px;
+            border-radius: 16px;
+            box-shadow: 0 5px 18px rgba(0, 0, 0, 0.07);
+        }
+
+        .student-summary h3 {
+            margin-bottom: 18px;
+        }
+
+        .student-row {
+            display: grid;
+            grid-template-columns: 80px 1fr 180px;
+            gap: 15px;
+            padding: 14px;
+            border-bottom: 1px solid #e2e8f0;
+            align-items: center;
+        }
+
+        .student-row:last-child {
+            border-bottom: none;
+        }
+
+        .roll {
+            color: #2563eb;
+            font-weight: bold;
+        }
+
+        .name {
+            font-weight: bold;
+        }
+
+        .percentage {
+            font-weight: bold;
+        }
+
+        .low {
+            color: #dc2626;
+        }
+
+        .good {
+            color: #16a34a;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 30px;
+            color: #64748b;
+        }
+
+        @media (max-width: 800px) {
+
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .student-row {
+                grid-template-columns: 1fr;
+                gap: 6px;
+            }
+        }
+
+        @media (max-width: 500px) {
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            main {
+                width: 92%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="topbar">
+
+    <div class="brand">
+        <h1>SmartClass</h1>
+        <p>Attendance Summary</p>
+    </div>
+
+    <a href="index.html" class="back-btn">
+        Dashboard
+    </a>
+
+</header>
+
+
+<main>
+
+    <section class="heading">
+
+        <h2>📊 Attendance Summary</h2>
+
+        <p>
+            Overall attendance performance
+        </p>
+
+    </section>
+
+
+    <section class="summary-grid">
+        <section class="subject-summary">
+    <h2>📚 Subject-wise Classes</h2>
+    <div id="subjectList"></div>
+</section>
+
+        <div class="summary-card">
+            <h3>Total Classes</h3>
+            <p id="totalClasses">0</p>
+        </div>
+
+        <div class="summary-card">
+            <h3>Total Students</h3>
+            <p id="totalStudents">0</p>
+        </div>
+
+        <div class="summary-card">
+            <h3>Total Present</h3>
+            <p id="totalPresent">0</p>
+        </div>
+
+        <div class="summary-card">
+            <h3>Total Absent</h3>
+            <p id="totalAbsent">0</p>
+        </div>
+
+    </section>
+
+
+    <section class="student-summary">
+
+        <h3>👥 Student Attendance</h3>
+
+        <div id="studentSummary"></div>
+
+    </section>
+
+</main>
+
+
+<script>
+
+    const isLoggedIn = localStorage.getItem("teacherLoggedIn");
+
+if (isLoggedIn !== "true") {
+    window.location.href = "login.html";
+}
+
+    const records =
+        JSON.parse(
+            localStorage.getItem("attendanceRecords")
+        ) || [];
+
+
+    const students =
+        JSON.parse(
+            localStorage.getItem("students")
+        ) || [];
+
+
+    document.getElementById("totalClasses").textContent =
+        records.length;
+
+
+    document.getElementById("totalStudents").textContent =
+        students.length;
+
+
+    let totalPresent = 0;
+    let totalAbsent = 0;
+
+
+    records.forEach(record => {
+
+        Object.values(record.attendance).forEach(status => {
+
+            if (status === "Present") {
+                totalPresent++;
+            }
+
+            if (status === "Absent") {
+                totalAbsent++;
+            }
+
+        });
+
+    });
+
+
+    document.getElementById("totalPresent").textContent =
+        totalPresent;
+
+
+    document.getElementById("totalAbsent").textContent =
+        totalAbsent;
+
+
+    const studentSummary =
+        document.getElementById("studentSummary");
+
+
+    if (students.length === 0) {
+
+        studentSummary.innerHTML = `
+            <div class="empty">
+                No students found.
+            </div>
+        `;
+
+    } else {
+
+        students.forEach(student => {
+
+            let present = 0;
+            let absent = 0;
+
+
+            records.forEach(record => {
+
+                const status =
+                    record.attendance[student.roll];
+
+
+                if (status === "Present") {
+                    present++;
+                }
+
+                if (status === "Absent") {
+                    absent++;
+                }
+
+            });
+
+
+            const total = present + absent;
+
+
+            let percentage = 0;
+
+            if (total > 0) {
+                percentage =
+                    Math.round((present / total) * 100);
+            }
+
+
+            const statusClass =
+                percentage < 75
+                ? "low"
+                : "good";
+
+
+            studentSummary.innerHTML += `
+
+                <div class="student-row">
+
+                    <div class="roll">
+                        ${student.roll}
+                    </div>
+
+                    <div class="name">
+                        ${student.name}
+                    </div>
+
+                    <div class="percentage ${statusClass}">
+    ${percentage}%
+    (${present} Present / ${absent} Absent)
+
+    <br>
+
+    ${
+        percentage < 75
+        ? "⚠️ Low Attendance"
+        : "✅ Good Attendance"
+    }
+</div>
+
+                </div>
+
+            `;
+
+        });
+
+    }
+const subjectCounts = {};
+
+records.forEach(record => {
+   const subject = record.subject || "Subject Not Added";
+
+    if (subjectCounts[subject]) {
+        subjectCounts[subject]++;
+    } else {
+        subjectCounts[subject] = 1;
+    }
+});
+
+const subjectList = document.getElementById("subjectList");
+
+subjectList.innerHTML = "";
+
+Object.keys(subjectCounts).forEach(subject => {
+    subjectList.innerHTML += `
+        <div class="subject-item">
+            📚 ${subject} — ${subjectCounts[subject]} Classes
+        </div>
+    `;
+});
+</script>
+
+</body>
+</html>

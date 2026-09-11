@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Attendance History - SmartClass</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .topbar {
+            background: #0f172a;
+            color: white;
+            padding: 20px 6%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand h1 {
+            font-size: 27px;
+        }
+
+        .brand p {
+            color: #cbd5e1;
+            margin-top: 5px;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            background: white;
+            color: #0f172a;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        main {
+            width: 88%;
+            max-width: 1100px;
+            margin: 30px auto;
+        }
+
+        .heading {
+            margin-bottom: 25px;
+        }
+
+        .heading h2 {
+            font-size: 28px;
+        }
+
+        .heading p {
+            color: #64748b;
+            margin-top: 7px;
+        }
+
+        .history-card {
+            background: white;
+            padding: 22px;
+            border-radius: 16px;
+            box-shadow: 0 5px 18px rgba(0, 0, 0, 0.07);
+            margin-bottom: 18px;
+        }
+
+        .record-header {
+            margin-bottom: 18px;
+        }
+
+        .record-header h3 {
+            color: #0f172a;
+            font-size: 21px;
+        }
+
+        .date {
+            color: #64748b;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            padding: 9px 14px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .total {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .present {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .absent {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .student-section {
+            margin-top: 20px;
+            padding-top: 18px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .student-section h4 {
+            margin-bottom: 10px;
+        }
+
+        .present-title {
+            color: #15803d;
+        }
+
+        .absent-title {
+            color: #b91c1c;
+            margin-top: 20px;
+        }
+
+        .student-name {
+            padding: 10px;
+            margin-top: 6px;
+            border-radius: 7px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+
+        .empty {
+            background: white;
+            padding: 40px;
+            text-align: center;
+            border-radius: 16px;
+            color: #64748b;
+            box-shadow: 0 5px 18px rgba(0, 0, 0, 0.07);
+        }
+
+        @media (max-width: 600px) {
+
+            .topbar {
+                padding: 18px;
+            }
+
+            main {
+                width: 92%;
+            }
+
+            .stats {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="topbar">
+
+    <div class="brand">
+        <h1>SmartClass</h1>
+        <p>Attendance History</p>
+    </div>
+
+    <a href="index.html" class="back-btn">
+        Dashboard
+    </a>
+
+</header>
+
+
+<main>
+
+    <section class="heading">
+
+        <h2>📊 Attendance History</h2>
+
+        <p>
+            View previously saved attendance records.
+        </p>
+
+    </section>
+
+
+    <section id="historyList"></section>
+
+</main>
+
+
+<script>
+
+    const isLoggedIn = localStorage.getItem("teacherLoggedIn");
+
+if (isLoggedIn !== "true") {
+    window.location.href = "login.html";
+}
+
+    const records =
+        JSON.parse(
+            localStorage.getItem("attendanceRecords")
+        ) || [];
+
+
+    const students =
+        JSON.parse(
+            localStorage.getItem("students")
+        ) || [];
+
+
+    const historyList =
+        document.getElementById("historyList");
+
+
+    function showHistory() {
+
+        if (records.length === 0) {
+
+            historyList.innerHTML = `
+                <div class="empty">
+
+                    <h3>No Attendance Records</h3>
+
+                    <p>
+                        Abhi tak koi attendance save nahi hui hai.
+                    </p>
+
+                </div>
+            `;
+
+            return;
+        }
+
+
+        historyList.innerHTML = "";
+
+
+        records.slice().reverse().forEach(record => {
+
+            const attendanceValues =
+                Object.values(record.attendance);
+
+
+            const total =
+                attendanceValues.length;
+
+
+            const present =
+                attendanceValues.filter(
+                    status => status === "Present"
+                ).length;
+
+
+            const absent =
+                attendanceValues.filter(
+                    status => status === "Absent"
+                ).length;
+
+
+            const presentStudents = [];
+
+            const absentStudents = [];
+
+
+            students.forEach(student => {
+
+                const status =
+                    record.attendance[student.roll];
+
+
+                if (status === "Present") {
+
+                    presentStudents.push(
+   `${student.name} (Roll: ${student.roll})`
+);
+
+                }
+
+
+                if (status === "Absent") {
+
+                    absentStudents.push(
+   `${student.name} (Roll: ${student.roll})`
+);
+                }
+
+            });
+
+
+            const card =
+                document.createElement("div");
+
+
+            card.className = "history-card";
+
+
+            card.innerHTML = `
+
+                <div class="record-header">
+
+                    <h3>
+                        ${record.className}
+                    </h3>
+
+                    <div class="subject">
+    📚 Subject: ${record.subject || "—"}
+</div>
+
+                    <div class="date">
+                        📅 ${record.date}
+                    </div>
+
+                </div>
+
+
+                <div class="stats">
+
+                    <div class="stat total">
+                        Total Students: ${total}
+                    </div>
+
+
+                    <div class="stat present">
+                        Present: ${present}
+                    </div>
+
+
+                    <div class="stat absent">
+                        Absent: ${absent}
+                    </div>
+
+                </div>
+
+
+                <div class="student-section">
+
+                    <h4 class="present-title">
+                        🟢 Present Students
+                    </h4>
+
+
+                    ${
+                        presentStudents.length > 0
+                        ? presentStudents
+                            .map(student => `
+                                <div class="student-name">
+                                    ${student}
+                                </div>
+                            `)
+                            .join("")
+                        : `
+                            <p>
+                                Koi student Present nahi hai.
+                            </p>
+                        `
+                    }
+
+
+                    <h4 class="absent-title">
+                        🔴 Absent Students
+                    </h4>
+
+
+                    ${
+                        absentStudents.length > 0
+                        ? absentStudents
+                            .map(student => `
+                                <div class="student-name">
+                                    ${student}
+                                </div>
+                            `)
+                            .join("")
+                        : `
+                            <p>
+                                Koi student Absent nahi hai.
+                            </p>
+                        `
+                    }
+
+                </div>
+
+            `;
+
+
+            historyList.appendChild(card);
+
+        });
+
+    }
+
+
+    showHistory();
+
+</script>
+
+
+</body>
+</html>

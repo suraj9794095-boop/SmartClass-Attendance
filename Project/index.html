@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SmartClass Attendance</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="dashboard">
+        <button onclick="logout()">Logout</button>
+
+        <header class="topbar">
+            <div>
+                <h1>SmartClass</h1>
+                <p>Teacher Attendance Management System</p>
+            </div>
+
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </header>
+
+        <main>
+
+            <section class="welcome">
+                <h2>Good Morning, Teacher 👋</h2>
+                <p>Manage today's attendance from here.</p>
+            </section>
+
+            <section class="date-card">
+                <span>Today's Date</span>
+                <strong id="todayDate"></strong>
+            </section>
+
+            <section class="dashboard-grid">
+
+                <div class="feature-card">
+                    <div class="icon">📝</div>
+                    <h3>Take Attendance</h3>
+                    <p>Start a new class and mark student attendance.</p>
+                    <button onclick="startClass()">Start New Class</button>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon">📊</div>
+                    <h3>Monthly Summary</h3>
+                    <p>View monthly attendance and percentage.</p>
+                    <a href="summary.html" class="summary-btn">View Summary</a>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon">📋</div>
+                    <h3>Attendance History</h3>
+                    <p>Check previous classes and attendance records.</p>
+                    <a href="history.html" class="history-btn">View History</a>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon">👥</div>
+                    <h3>Students</h3>
+                    <p>Manage student names and roll numbers.</p>
+                    <a href="history.html" class="history-btn">View History</a>
+                </div>
+
+            </section>
+
+            <section class="class-status">
+                <h2>Today's Classes</h2>
+
+                <div id="classList">
+                    <p class="empty">No class started yet.</p>
+                </div>
+            </section>
+
+        </main>
+
+    </div>
+
+    <script>
+const isLoggedIn = localStorage.getItem("teacherLoggedIn");
+
+if (isLoggedIn !== "true") {
+    window.location.href = "login.html";
+}
+        // Automatic date
+        const today = new Date();
+
+        const options = {
+            day: "2-digit",
+            month: "long",
+            year: "numeric"
+        };
+
+        document.getElementById("todayDate").textContent =
+            today.toLocaleDateString("en-IN", options);
+
+
+        // Class counter
+        let classNumber = 0;
+
+        function startClass() {
+            function openStudents() {
+    window.location.href = "students.html";
+}
+    classNumber++;
+
+    const className = getClassName(classNumber);
+
+    window.location.href =
+        "attendance.html?class=" + encodeURIComponent(className);
+}
+
+        function getClassName(number) {
+
+            const names = [
+                "First Class",
+                "Second Class",
+                "Third Class",
+                "Fourth Class",
+                "Fifth Class",
+                "Sixth Class",
+                "Seventh Class",
+                "Eighth Class"
+            ];
+
+            return names[number - 1] || number + "th Class";
+        }
+
+function openHistory() {
+    window.location.href = "history.html";
+}
+function logout() {
+    localStorage.removeItem("teacherLoggedIn");
+    window.location.href = "login.html";
+}
+    </script>
+
+</body>
+</html>

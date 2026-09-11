@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Students - SmartClass</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .topbar {
+            background: #0f172a;
+            color: white;
+            padding: 20px 6%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand h1 {
+            font-size: 27px;
+        }
+
+        .brand p {
+            color: #cbd5e1;
+            margin-top: 5px;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            background: white;
+            color: #0f172a;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        main {
+            width: 88%;
+            max-width: 1200px;
+            margin: 30px auto;
+        }
+
+        .page-heading {
+            margin-bottom: 25px;
+        }
+
+        .page-heading h2 {
+            font-size: 28px;
+        }
+
+        .page-heading p {
+            color: #64748b;
+            margin-top: 7px;
+        }
+
+        .student-form,
+        .search-box,
+        .student-list {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 5px 18px rgba(0, 0, 0, 0.07);
+        }
+
+        .student-form {
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .student-form h3 {
+            margin-bottom: 18px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #2563eb;
+        }
+
+        .add-btn {
+            margin-top: 18px;
+            padding: 12px 22px;
+            border: none;
+            border-radius: 8px;
+            background: #2563eb;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .search-box {
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            max-width: 500px;
+        }
+
+        .student-list {
+            padding: 20px;
+        }
+
+        .student-row {
+            display: grid;
+            grid-template-columns: 80px 1fr 180px;
+            gap: 15px;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .student-row:last-child {
+            border-bottom: none;
+        }
+
+        .roll {
+            font-weight: bold;
+            color: #2563eb;
+        }
+
+        .student-name {
+            font-weight: bold;
+        }
+
+        .mobile {
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .action-btn {
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .edit-btn {
+            background: #2563eb;
+            color: white;
+        }
+
+        .delete-btn {
+            background: #dc2626;
+            color: white;
+        }
+
+        .empty {
+            text-align: center;
+            color: #64748b;
+            padding: 30px;
+        }
+
+        @media (max-width: 700px) {
+            .topbar {
+                padding: 18px;
+            }
+
+            main {
+                width: 92%;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .student-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="topbar">
+    <div class="brand">
+        <h1>SmartClass</h1>
+        <p>Student Management</p>
+    </div>
+
+    <a href="index.html" class="back-btn">Dashboard</a>
+</header>
+
+<main>
+
+    <section class="page-heading">
+        <h2>👥 Students</h2>
+        <p>Add and manage students of your class.</p>
+    </section>
+
+    <section class="student-form">
+        <h3>Add New Student</h3>
+
+        <div class="form-grid">
+            <input type="text" id="studentName" placeholder="Student Name">
+            <input type="text" id="rollNumber" placeholder="Roll Number">
+            <input type="tel" id="mobileNumber" placeholder="Mobile Number">
+        </div>
+
+        <button class="add-btn" onclick="addStudent()">
+            + Add Student
+        </button>
+    </section>
+
+    <section class="search-box">
+        <input
+            type="text"
+            id="searchStudent"
+            placeholder="🔍 Search by name or roll number"
+            oninput="displayStudents()"
+        >
+    </section>
+
+    <section class="student-list">
+        <div id="studentList"></div>
+    </section>
+
+</main>
+
+<script>
+
+    const isLoggedIn = localStorage.getItem("teacherLoggedIn");
+
+if (isLoggedIn !== "true") {
+    window.location.href = "login.html";
+}
+
+    let students =
+        JSON.parse(localStorage.getItem("students")) || [
+            {
+                name: "Aman Kumar",
+                roll: "101",
+                mobile: "9876543210"
+            },
+            {
+                name: "Rahul Yadav",
+                roll: "102",
+                mobile: "9876543211"
+            }
+        ];
+
+
+    function displayStudents() {
+
+        const list = document.getElementById("studentList");
+
+        const search =
+            document.getElementById("searchStudent")
+            .value
+            .toLowerCase();
+
+        const filtered = students.filter(student =>
+            student.name.toLowerCase().includes(search) ||
+            student.roll.toLowerCase().includes(search)
+        );
+
+        if (filtered.length === 0) {
+            list.innerHTML =
+                '<div class="empty">No student found.</div>';
+            return;
+        }
+
+        list.innerHTML = "";
+
+        filtered.forEach(student => {
+
+            const row = document.createElement("div");
+
+            row.className = "student-row";
+
+            row.innerHTML = `
+                <div class="roll">
+                    ${student.roll}
+                </div>
+
+                <div>
+                    <div class="student-name">
+                        ${student.name}
+                    </div>
+
+                    <div class="mobile">
+                        📱 ${student.mobile}
+                    </div>
+                </div>
+
+                <div>
+                    <button
+                        class="action-btn edit-btn"
+                        onclick="editStudent('${student.roll}')">
+                        Edit
+                    </button>
+
+                    <button
+                        class="action-btn delete-btn"
+                        onclick="deleteStudent('${student.roll}')">
+                        Delete
+                    </button>
+                </div>
+            `;
+
+            list.appendChild(row);
+        });
+    }
+
+
+    function addStudent() {
+
+        const name =
+            document.getElementById("studentName")
+            .value
+            .trim();
+
+        const roll =
+            document.getElementById("rollNumber")
+            .value
+            .trim();
+
+        const mobile =
+            document.getElementById("mobileNumber")
+            .value
+            .trim();
+
+
+        if (!name || !roll || !mobile) {
+            alert("Please fill all student details.");
+            return;
+        }
+
+
+        const alreadyExists =
+            students.some(student =>
+                student.roll === roll
+            );
+
+
+        if (alreadyExists) {
+            alert("This roll number already exists.");
+            return;
+        }
+
+
+        students.push({
+            name: name,
+            roll: roll,
+            mobile: mobile
+        });
+
+
+        localStorage.setItem(
+            "students",
+            JSON.stringify(students)
+        );
+
+
+        document.getElementById("studentName").value = "";
+        document.getElementById("rollNumber").value = "";
+        document.getElementById("mobileNumber").value = "";
+
+
+        displayStudents();
+
+        alert("Student added successfully!");
+    }
+
+
+    function deleteStudent(roll) {
+
+        const confirmDelete =
+            confirm(
+                "Kya aap is student ko delete karna chahte hain?"
+            );
+
+        if (!confirmDelete) {
+            return;
+        }
+
+
+        students =
+            students.filter(student =>
+                student.roll !== roll
+            );
+
+
+        localStorage.setItem(
+            "students",
+            JSON.stringify(students)
+        );
+
+
+        displayStudents();
+    }
+
+
+    function editStudent(roll) {
+
+        const student =
+            students.find(student =>
+                student.roll === roll
+            );
+
+        if (!student) {
+            return;
+        }
+
+
+        const newName =
+            prompt(
+                "Student ka naam:",
+                student.name
+            );
+
+        if (newName === null) {
+            return;
+        }
+
+
+        const newMobile =
+            prompt(
+                "Mobile Number:",
+                student.mobile
+            );
+
+        if (newMobile === null) {
+            return;
+        }
+
+
+        student.name = newName.trim();
+        student.mobile = newMobile.trim();
+
+
+        localStorage.setItem(
+            "students",
+            JSON.stringify(students)
+        );
+
+
+        displayStudents();
+    }
+
+
+    displayStudents();
+
+</script>
+
+</body>
+</html>

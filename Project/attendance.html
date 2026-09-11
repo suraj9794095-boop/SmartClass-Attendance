@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Take Attendance - SmartClass</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .topbar {
+            background: #0f172a;
+            color: white;
+            padding: 22px 6%;
+        }
+
+        .topbar h1 {
+            font-size: 28px;
+        }
+
+        .topbar p {
+            color: #cbd5e1;
+            margin-top: 5px;
+        }
+
+        main {
+            width: 88%;
+            max-width: 1000px;
+            margin: 30px auto;
+        }
+
+        .header-card,
+        .attendance-card {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 5px 18px rgba(0, 0, 0, 0.07);
+            margin-bottom: 25px;
+        }
+
+        .header-card h2 {
+            margin-bottom: 10px;
+        }
+
+        .date {
+            color: #64748b;
+            margin-top: 8px;
+        }
+
+        .class-select {
+            margin-top: 20px;
+        }
+
+        .class-select label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        select {
+            padding: 11px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            width: 220px;
+            font-size: 15px;
+        }
+
+        .student-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 12px;
+        }
+
+        .student-info strong {
+            display: block;
+        }
+
+        .student-info span {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .buttons button {
+            border: none;
+            padding: 9px 14px;
+            border-radius: 7px;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+        }
+
+        .present {
+            background: #16a34a;
+        }
+
+        .absent {
+            background: #dc2626;
+        }
+
+        .selected {
+            outline: 3px solid #facc15;
+        }
+
+        .save-btn {
+            margin-top: 25px;
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 9px;
+            background: #2563eb;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .message {
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        @media (max-width: 600px) {
+            .student-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .buttons {
+                width: 100%;
+            }
+
+            .buttons button {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="topbar">
+    <div>
+        <h1>SmartClass</h1>
+        <p>Teacher Attendance Management System</p>
+    </div>
+
+    <a href="index.html" class="dashboard-btn">Dashboard</a>
+</header>
+    <main>
+
+        <section class="header-card">
+            <h2>📝 Take Attendance</h2>
+            <p class="date">
+                Today's Date:
+                <strong id="todayDate"></strong>
+            </p>
+
+            <div class="class-select">
+                <label for="className">Select Class</label>
+<label>Subject</label>
+<input type="text" id="subject" placeholder="Enter Subject" required>
+                <select id="className">
+                    <option>First Class</option>
+                    <option>Second Class</option>
+                    <option>Third Class</option>
+                    <option>Fourth Class</option>
+                    <option>Fifth Class</option>
+                </select>
+            </div>
+        </section>
+
+        <section class="attendance-card">
+            <div class="qr-section">
+    <h2>📱 Permanent QR Attendance</h2>
+
+    <input
+        type="text"
+        id="teacherName"
+        placeholder="Teacher Name"
+    >
+
+    <input
+        type="text"
+        id="qrSubject"
+        placeholder="Subject"
+    >
+
+    <button onclick="createPermanentQR()">
+        Generate Permanent QR
+    </button>
+
+    <div id="qrArea"></div>
+</div>
+            <h2>Student List</h2>
+
+            <div id="studentList"></div>
+
+            <button class="save-btn" onclick="saveAttendance()">
+               <button class="qr-btn" onclick="startQR()">
+    📱 Start QR Attendance
+</button>
+                Save Attendance
+            </button>
+
+            <p id="message" class="message"></p>
+        </section>
+
+    </main>
+
+    <script>
+
+        const isLoggedIn = localStorage.getItem("teacherLoggedIn");
+
+if (isLoggedIn !== "true") {
+    window.location.href = "login.html";
+}
+        // Automatic date
+        const today = new Date();
+        const urlParams = new URLSearchParams(window.location.search);
+const selectedClass = urlParams.get("class");
+
+if (selectedClass) {
+    document.getElementById("className").value = selectedClass;
+}
+
+        document.getElementById("todayDate").textContent =
+            today.toLocaleDateString("en-IN", {
+                day: "2-digit",
+                month: "long",
+                year: "numeric"
+            });
+
+
+        // Demo student list
+        const students =
+    JSON.parse(localStorage.getItem("students")) || [
+        { roll: "101", name: "Aman Kumar" },
+        { roll: "102", name: "Rahul Yadav" }
+    ];
+
+        // Attendance record
+        const attendance = {};
+
+        function showStudents() {
+            function goDashboard() {
+    window.location.href = "index.html";
+}
+            const studentList = document.getElementById("studentList");
+
+            studentList.innerHTML = "";
+
+            students.forEach(student => {
+                attendance[student.roll] = "";
+
+                const row = document.createElement("div");
+                row.className = "student-row";
+
+                row.innerHTML = `
+                    <div class="student-info">
+                        <strong>${student.name}</strong>
+                        <span>Roll No: ${student.roll}</span>
+                    </div>
+
+                    <div class="buttons">
+                        <button class="present"
+                            onclick="markAttendance('${student.roll}', 'Present', this)">
+                            Present
+                        </button>
+
+                        <button class="absent"
+                            onclick="markAttendance('${student.roll}', 'Absent', this)">
+                            Absent
+                        </button>
+                    </div>
+                `;
+
+                studentList.appendChild(row);
+            });
+        }
+
+        function markAttendance(roll, status, button) {
+            attendance[roll] = status;
+
+            const buttons = button.parentElement.children;
+
+            buttons[0].classList.remove("selected");
+            buttons[1].classList.remove("selected");
+
+            button.classList.add("selected");
+        }
+
+        function saveAttendance() {
+    const message = document.getElementById("message");
+
+    const unmarked = students.filter(student =>
+        attendance[student.roll] === ""
+    );
+
+    if (unmarked.length > 0) {
+        message.textContent =
+            "⚠️ कृपया सभी छात्रों की Present या Absent attendance भरें.";
+        message.style.color = "#dc2626";
+        return;
+    }
+
+    const className =
+        document.getElementById("className").value;
+        const subject = document.getElementById("subject").value.trim();
+
+if (subject === "") {
+    message.textContent = "⚠️ कृपया Subject भरें.";
+    message.style.color = "#dc2626";
+    return;
+}
+
+    const date =
+        new Date().toISOString().split("T")[0];
+
+    const record = {
+    date: date,
+    className: className,
+    subject: document.getElementById("subject").value,
+    attendance: { ...attendance }
+};
+
+    // पहले से saved records निकालना
+    let records =
+        JSON.parse(localStorage.getItem("attendanceRecords")) || [];
+
+    // उसी date + class का record ढूँढना
+    const existingIndex = records.findIndex(record =>
+        record.date === date &&
+        record.className === className
+    );
+
+    // अगर पहले से है तो update होगा
+    if (existingIndex !== -1) {
+        records[existingIndex] = record;
+    } else {
+        records.push(record);
+    }
+
+    // Browser में save
+    localStorage.setItem(
+        "attendanceRecords",
+        JSON.stringify(records)
+    );
+
+    message.textContent =
+        "✅ Attendance successfully saved!";
+    message.style.color = "#16a34a";
+}
+function startQR() {
+    alert("QR Attendance System जल्द शुरू होगा!");
+}
+function createPermanentQR() {
+
+    const teacherName =
+        document.getElementById("teacherName").value.trim();
+
+    const subject =
+        document.getElementById("qrSubject").value.trim();
+
+    const className =
+        document.getElementById("className").value;
+
+    const qrArea =
+        document.getElementById("qrArea");
+
+    if (teacherName === "") {
+        alert("कृपया Teacher Name भरें.");
+        return;
+    }
+
+    if (subject === "") {
+        alert("कृपया Subject भरें.");
+        return;
+    }
+
+    // QR में permanent information
+    const qrData = JSON.stringify({
+        type: "SmartClass Attendance",
+        teacher: teacherName,
+        className: className,
+        subject: subject
+    });
+
+    // पुराना QR हटाएँ
+    qrArea.innerHTML = "";
+
+    // नया QR बनाएँ
+    new QRCode(qrArea, {
+        text: qrData,
+        width: 220,
+        height: 220
+    });
+
+    // QR information save करें
+    localStorage.setItem("smartClassQR", qrData);
+}
+const savedQR = localStorage.getItem("smartClassQR");
+
+if (savedQR) {
+
+    new QRCode(document.getElementById("qrArea"), {
+        text: savedQR,
+        width: 220,
+        height: 220
+    });
+
+}
+showStudents();
+
+</script>
+
+</body>
+</html>
