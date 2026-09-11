@@ -115,7 +115,14 @@
         <button class="login-btn" onclick="login()">
             Login
         </button>
-
+<div style="text-align:center; margin-top:15px;">
+    <button
+        onclick="forgotPassword()"
+        style="border:none; background:none; color:#2563eb; cursor:pointer; font-weight:bold;"
+    >
+        Forgot Password?
+    </button>
+</div>
         <p id="message" class="message"></p>
 
     </div>
@@ -133,7 +140,10 @@
             const message =
                 document.getElementById("message");
 
-            if (username === "teacher" && password === "1234") {
+            const savedPassword =
+    localStorage.getItem("teacherPassword") || "1234";
+
+if (username === "teacher" && password === savedPassword) {
 
                 message.textContent =
                     "✅ Login successful!";
@@ -153,7 +163,37 @@
                 message.style.color = "#dc2626";
             }
         }
+function forgotPassword() {
+    const username = prompt("Enter your teacher username:");
 
+    if (username === null) {
+        return;
+    }
+
+    if (username.trim() === "teacher") {
+        const otp = Math.floor(1000 + Math.random() * 9000);
+
+        alert("Demo OTP: " + otp);
+
+        const enteredOTP = prompt("Enter the OTP:");
+
+        if (enteredOTP === String(otp)) {
+            const newPassword = prompt("Enter your new password:");
+
+            if (newPassword && newPassword.trim() !== "") {
+                localStorage.setItem("teacherPassword", newPassword.trim());
+                alert("✅ Password changed successfully!");
+            } else {
+                alert("❌ Password cannot be empty.");
+            }
+        } else {
+            alert("❌ Incorrect OTP.");
+        }
+
+    } else {
+        alert("❌ Username not found.");
+    }
+}
     </script>
 
 </body>
